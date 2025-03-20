@@ -2,7 +2,7 @@ const arrowLeft = document.querySelector(".arrow-left");
 const arrowRight = document.querySelector(".arrow-right");
 const dots = document.querySelectorAll(".dot");
 
-const pages = ["Homepage.html", "ContactUs.html", "Purchases.html"];
+const pages = ["homepage.html", "contactus.html", "purchases.html"];
 
 const skipIndex = 2;
 
@@ -33,11 +33,11 @@ dots.forEach((dot, index) => {
     if (index === 0) {
       return;
     } else if (index === 1) {
-      window.location.href = "ContactUs.html";
+      window.location.href = "contactUs.html";
     } else if (index === skipIndex) {
       return;
     } else if (index === 3) {
-      window.location.href = "Purchases.html";
+      window.location.href = "purchases.html";
     }
   });
 });
