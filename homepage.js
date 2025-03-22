@@ -1,8 +1,9 @@
 const arrowLeft = document.querySelector(".arrow-left");
 const arrowRight = document.querySelector(".arrow-right");
 const dots = document.querySelectorAll(".dot");
+const alohomoraButton = document.querySelector(".login_btn"); // Add this line to select the Alohomora button
 
-const pages = ["index.html", "contactus.html", "purchases.html"];
+const pages = ["index.html", "contactus.html", "purchases.html", "hat.html"]; // Added hat.html to your pages array
 
 const skipIndex = 2;
 
@@ -40,4 +41,9 @@ dots.forEach((dot, index) => {
       window.location.href = "purchases.html";
     }
   });
+});
+
+// Add event listener for the Alohomora button
+alohomoraButton.addEventListener("click", () => {
+  window.location.href = "hat.html"; // Redirect to hat.html when button is clicked
 });

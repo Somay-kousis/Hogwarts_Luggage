@@ -219,9 +219,8 @@ a:hover {
   font-size: 1.6rem;
   font-weight: 400;
   margin-bottom: 1.2rem;
-  color: #9369d9;
+  color: beige;
   position: relative;
-  text-shadow: #0a0517 0.9px 0.9px 1px;
 }
 
 .footer-heading::after {
@@ -232,7 +231,6 @@ a:hover {
   width: 30px;
   height: 2px;
   background-color: #9369d9;
-  text-shadow: #0a0517 0.9px 0.9px 1px;
 }
 
 .footer-text {
@@ -241,7 +239,6 @@ a:hover {
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
   color: rgba(255, 255, 255, 0.8);
-  text-shadow: #0a0517 0.9px 0.9px 1px;
 }
 
 /* Social Media Links */
@@ -283,7 +280,7 @@ a:hover {
 
 .highlight {
   font-weight: 450;
-  color: #9369d9;
+  color: beige;
 }
 
 /* Copyright Bar */
@@ -599,11 +596,15 @@ a:hover {
   height: 12rem;
   background: linear-gradient(135deg, #3a1d6e 0%, #6a3cb3 100%);
 }
-
+svg {
+  display: flex;
+  overflow: visible;
+  margin-top: -5rem;
+}
 .product_card h3 {
   font-family: "Marcellus", serif;
   font-size: 1.5rem;
-  margin: 1.5rem 1.5rem 0.5rem;
+  margin: 3rem 1.5rem 0.5rem;
   color: #9369d9;
 }
 
@@ -632,7 +633,11 @@ a:hover {
 .product_btn:hover {
   background-color: #9369d9;
 }
-
+.product_image {
+  width: 100%;
+  height: auto;
+  border-radius: 15px 15px 0 0;
+}
 /* Testimonials Section */
 .testimonials {
   padding: 0 5rem 5rem;
