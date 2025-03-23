@@ -140,6 +140,18 @@ document.addEventListener("DOMContentLoaded", function () {
   // Set up the quiz interface
   function setupQuizInterface() {
     const quizInterfaceHTML = `
+        <!-- Sorting Hat Section - Added this section -->
+        <div class="sorting-hat">
+          <div class="hat-image">
+            <img src="sorting.png" alt="Sorting Hat" />
+          </div>
+          <h2 class="sorting-title">The Luggage Sorting Quiz</h2>
+          <p class="sorting-subtitle">
+            Answer the questions honestly, and we'll find your perfect magical
+            travel companion!
+          </p>
+        </div>
+        
         <div class="quiz-header">
           <div class="progress-container">
             <div class="progress"></div>

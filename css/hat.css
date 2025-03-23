@@ -165,8 +165,8 @@ a:hover {
 }
 
 .hat-image {
-  width: 130px;
-  height: 130px;
+  width: 30%;
+  height: auto;
   margin: 0 auto 1.5rem;
   transition: all 0.5s ease;
   animation: float 6s ease-in-out infinite;
@@ -385,9 +385,8 @@ a:hover {
   font-size: 1.6rem;
   font-weight: 400;
   margin-bottom: 1.2rem;
-  color: #9369d9;
+  color: beige;
   position: relative;
-  text-shadow: #0a0517 0.9px 0.9px 1px;
 }
 
 .footer-heading::after {
@@ -398,7 +397,6 @@ a:hover {
   width: 30px;
   height: 2px;
   background-color: #9369d9;
-  text-shadow: #0a0517 0.9px 0.9px 1px;
 }
 
 .footer-text {
@@ -407,7 +405,6 @@ a:hover {
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
   color: rgba(255, 255, 255, 0.8);
-  text-shadow: #0a0517 0.9px 0.9px 1px;
 }
 
 /* Social Media Links */
@@ -449,7 +446,7 @@ a:hover {
 
 .highlight {
   font-weight: 450;
-  color: #9369d9;
+  color: beige;
 }
 
 /* Copyright Bar */
