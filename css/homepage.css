@@ -519,7 +519,6 @@ a:hover {
 
 .login_btn {
   display: block;
-  width: 60%;
   margin: 0.5rem auto;
   padding: 1rem;
   background: linear-gradient(135deg, #3a1d6e 0%, #6a3cb3 100%);
