@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/features.css" />
+    <link rel="stylesheet" href="css/magic-common.css" />
   </head>
 
   <body>
@@ -77,7 +78,7 @@
                   Searching for your luggage...
                 </div>
                 <div id="map" class="map-container">
-                  <img src="/api/placeholder/320/200" alt="Map placeholder" />
+                  <canvas id="maraudersMapCanvas"></canvas>
                 </div>
                 <button id="refreshLocation" class="feature-btn">
                   Refresh Location
@@ -273,6 +274,7 @@
         </div>
       </footer>
     </div>
+    <script src="magic-common.js"></script>
     <script src="features.js"></script>
   </body>
 </html>

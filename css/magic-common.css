@@ -1,0 +1,155 @@
+/* Shared Magical Core Styles */
+
+/* Magical Page Wipe Overlay */
+#magic-gate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1a0942 0%, #0a0517 100%);
+  z-index: 10000;
+  transform: translateY(-100%);
+  transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#magic-gate.active {
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+/* Ambient Flame Glow Effect overlay */
+.ambient-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.05) 0%, transparent 50%),
+              radial-gradient(circle at 20% 80%, rgba(147, 105, 217, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 1;
+  animation: candleFlicker 8s ease-in-out infinite alternate;
+}
+
+@keyframes candleFlicker {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+/* Floating Sound Toggle Button */
+.magic-sound-toggle {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a1d6e 0%, #1a0942 100%);
+  border: 2px solid #deb887;
+  color: #deb887;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 9999;
+  box-shadow: 0 0 15px rgba(222, 184, 135, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+  animation: soundFloat 4s ease-in-out infinite;
+}
+
+.magic-sound-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 25px rgba(147, 105, 217, 0.8), inset 0 0 5px rgba(222, 184, 135, 0.5);
+  color: #fff;
+  border-color: #9369d9;
+}
+
+.magic-sound-toggle.muted {
+  filter: grayscale(0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes soundFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Spell Trail Canvas Overlay */
+#magic-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Magical Animations */
+@keyframes magicFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+@keyframes spellShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.spell-shake {
+  animation: spellShake 0.4s ease-in-out !important;
+}
+
+@keyframes goldenGlitter {
+  0% { text-shadow: 0 0 4px #eeba30, 0 0 8px #deb887; }
+  50% { text-shadow: 0 0 15px #eeba30, 0 0 25px #ffba0d, 0 0 35px #9369d9; }
+  100% { text-shadow: 0 0 4px #eeba30, 0 0 8px #deb887; }
+}
+
+/* Standardized active menu states and transitions */
+.menuboxes {
+  cursor: pointer;
+  user-select: none;
+}
+
+.menuboxes a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.menuboxes.active {
+  background-color: rgba(147, 105, 217, 0.45) !important;
+  border-color: #aa7bc3 !important;
+  box-shadow: 0 0 15px rgba(170, 123, 195, 0.5) !important;
+}
+
+/* 3D Card Hover Setup */
+.card-tilt-wrapper {
+  perspective: 1000px;
+}
+
+/* Custom interactive custom wands */
+button, .menuboxes, .social-link, .dot, .chevron img, .option label, .house-option {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' style='fill:none;stroke:%23deb887;stroke-width:2;stroke-linecap:round;' viewBox='0 0 24 24'><path d='M3 21l10-10M13 11l3-3M8 6h.01M16 4h.01M19 7h.01M12 3h.01M18 10h.01'/></svg>"), auto !important;
+}

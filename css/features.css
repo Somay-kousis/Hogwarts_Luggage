@@ -375,6 +375,12 @@ body.hufflepuff-theme {
   object-fit: cover;
 }
 
+#maraudersMapCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .feature-btn {
   background: linear-gradient(135deg, #3a1d6e 0%, #6a3cb3 100%);
   border: none;

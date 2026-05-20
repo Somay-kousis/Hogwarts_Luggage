@@ -1,61 +1,84 @@
 // Features.js - MuggleProof Luggage Control System
 
-document.addEventListener("DOMContentLoaded", function () {
-  // Initialize the app
-  initializeApp();
+let mapCanvas = null;
+let mapCtx = null;
+let footprints = [];
+let mapWalls = [];
+let mapLoop = null;
+let characters = [];
 
-  // Set up event listeners
+document.addEventListener("DOMContentLoaded", function () {
+  initializeApp();
   setupEventListeners();
 });
 
 // =================== INITIALIZATION ===================
 function initializeApp() {
-  // Initialize all features
-  updateGPSLocation();
+  updateGPSLocation(true); // silent on initial load
   updateWeightDisplay();
   displayRandomQuote();
   setupHouseSelection();
-
-  // Check for saved preferences
   checkSavedPreferences();
+  initMaraudersMap();
 
   console.log("MuggleProof Luggage Control System initialized");
 }
 
 function checkSavedPreferences() {
-  // Check if user has previously selected a house theme
   const savedHouse = localStorage.getItem("selectedHouse");
   if (savedHouse) {
     applyHouseTheme(savedHouse);
     highlightSelectedHouse(savedHouse);
   }
 
-  // Set toggle state from localStorage if available
   const followMeState = localStorage.getItem("followMeEnabled");
   if (followMeState === "true") {
-    document.getElementById("followToggle").checked = true;
+    const toggle = document.getElementById("followToggle");
+    if (toggle) toggle.checked = true;
     updateFollowStatus(true);
   }
 }
 
 function setupEventListeners() {
   // GPS Location refresh button
-  document
-    .getElementById("refreshLocation")
-    .addEventListener("click", updateGPSLocation);
+  const refreshBtn = document.getElementById("refreshLocation");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      if (window.MagicEngine) window.MagicEngine.playChime(660, "sine", 0.25, 0.15);
+      updateGPSLocation();
+    });
+  }
 
   // Follow Me toggle
-  document
-    .getElementById("followToggle")
-    .addEventListener("change", function (e) {
+  const followToggle = document.getElementById("followToggle");
+  if (followToggle) {
+    followToggle.addEventListener("change", function (e) {
+      if (window.MagicEngine) {
+        if (e.target.checked) {
+          window.MagicEngine.playChime(587.33, "sine", 0.1, 0.12);
+          setTimeout(() => window.MagicEngine.playChime(880, "sine", 0.3, 0.15), 80);
+        } else {
+          window.MagicEngine.playChime(440, "sine", 0.2, 0.1);
+        }
+      }
       updateFollowStatus(e.target.checked);
       localStorage.setItem("followMeEnabled", e.target.checked);
     });
+  }
 
   // House selection
   document.querySelectorAll(".house-option").forEach((option) => {
+    option.style.cursor = "pointer";
     option.addEventListener("click", function () {
       const house = this.getAttribute("data-house");
+      if (window.MagicEngine) {
+        // Play wand sweep and a chord fitting the house
+        window.MagicEngine.playWandSweep();
+        if (house === "gryffindor") setTimeout(() => window.MagicEngine.playChime(392, "triangle", 0.5, 0.15), 150);
+        if (house === "slytherin") setTimeout(() => window.MagicEngine.playChime(329.6, "sawtooth", 0.5, 0.1), 150);
+        if (house === "ravenclaw") setTimeout(() => window.MagicEngine.playChime(523.2, "sine", 0.5, 0.15), 150);
+        if (house === "hufflepuff") setTimeout(() => window.MagicEngine.playChime(440, "sine", 0.5, 0.15), 150);
+      }
       applyHouseTheme(house);
       localStorage.setItem("selectedHouse", house);
       highlightSelectedHouse(house);
@@ -63,88 +86,260 @@ function setupEventListeners() {
   });
 
   // New quote button
-  document
-    .getElementById("newQuote")
-    .addEventListener("click", displayRandomQuote);
+  const newQuoteBtn = document.getElementById("newQuote");
+  if (newQuoteBtn) {
+    newQuoteBtn.addEventListener("click", () => {
+      if (window.MagicEngine) window.MagicEngine.playChime(784, "sine", 0.2, 0.12);
+      displayRandomQuote();
+    });
+  }
 
   // Password update
-  document
-    .getElementById("updatePassword")
-    .addEventListener("click", updatePassword);
+  const updatePassBtn = document.getElementById("updatePassword");
+  if (updatePassBtn) {
+    updatePassBtn.addEventListener("click", updatePassword);
+  }
 
   // Password reset
-  document
-    .getElementById("resetPassword")
-    .addEventListener("click", resetPassword);
+  const resetPassBtn = document.getElementById("resetPassword");
+  if (resetPassBtn) {
+    resetPassBtn.addEventListener("click", resetPassword);
+  }
 
   // Sorting Hat
-  document
-    .getElementById("sortingHat")
-    .addEventListener("click", consultSortingHat);
+  const sortingHatBtn = document.getElementById("sortingHat");
+  if (sortingHatBtn) {
+    sortingHatBtn.addEventListener("click", consultSortingHat);
+  }
 }
 
 // =================== GPS LOCATION FEATURE ===================
-function updateGPSLocation() {
+function updateGPSLocation(silent = false) {
   const locationCoords = document.getElementById("locationCoords");
   const gpsStatus = document.getElementById("gpsStatus");
+  if (!locationCoords || !gpsStatus) return;
 
-  // Simulate connecting to GPS module
   gpsStatus.textContent = "Connecting...";
-  gpsStatus.style.backgroundColor = "rgba(255, 165, 0, 0.3)";
+  gpsStatus.style.backgroundColor = "rgba(255, 165, 0, 0.35)";
 
   setTimeout(() => {
-    // Simulate GPS data received from ESP module
     const locations = [
-      { lat: 51.5074, lng: -0.1278, name: "London" },
-      { lat: 55.9533, lng: -3.1883, name: "Edinburgh" },
-      { lat: 53.4808, lng: -2.2426, name: "Manchester" },
-      { lat: 53.8008, lng: -1.5491, name: "Leeds" },
-      { lat: 52.4862, lng: -1.8904, name: "Birmingham" },
+      { lat: 51.5074, lng: -0.1278, name: "London (King's Cross)" },
+      { lat: 57.0481, lng: -3.8522, name: "Scottish Highlands" },
+      { lat: 55.9533, lng: -3.1883, name: "Edinburgh (Diagon Alley)" },
+      { lat: 51.1789, lng: -1.8262, name: "Stonehenge" },
+      { lat: 53.4808, lng: -2.2426, name: "Manchester" }
     ];
 
-    const randomLocation =
-      locations[Math.floor(Math.random() * locations.length)];
+    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
 
-    // Update the status
     gpsStatus.textContent = "Connected";
-    gpsStatus.style.backgroundColor = "rgba(0, 255, 0, 0.3)";
+    gpsStatus.style.backgroundColor = "rgba(34, 139, 34, 0.4)";
 
-    // Update location display
-    locationCoords.innerHTML = `Your luggage is in <strong>${
-      randomLocation.name
-    }</strong><br>
-                                 Coordinates: ${randomLocation.lat.toFixed(
-                                   4
-                                 )}, ${randomLocation.lng.toFixed(4)}`;
+    locationCoords.innerHTML = `Your luggage is in <strong>${randomLocation.name}</strong><br>
+                                 Coordinates: ${randomLocation.lat.toFixed(4)}, ${randomLocation.lng.toFixed(4)}`;
 
-    // Add a magical effect to the map
+    if (!silent && window.MagicEngine) {
+      window.MagicEngine.playChime(880, "sine", 0.3, 0.15);
+    }
+
+    // Trigger map canvas ripple/scurry
+    triggerMapGlitch();
+
     const mapContainer = document.getElementById("map");
-    mapContainer.style.transition = "transform 0.5s, filter 0.5s";
-    mapContainer.style.transform = "scale(0.95)";
-    mapContainer.style.filter = "brightness(1.2) saturate(1.2)";
+    if (mapContainer) {
+      mapContainer.style.transition = "transform 0.4s, filter 0.4s";
+      mapContainer.style.transform = "scale(0.97)";
+      mapContainer.style.filter = "brightness(1.3) saturate(1.2)";
 
-    setTimeout(() => {
-      mapContainer.style.transform = "scale(1)";
-      mapContainer.style.filter = "brightness(1) saturate(1)";
-    }, 500);
-  }, 2000);
+      setTimeout(() => {
+        mapContainer.style.transform = "scale(1)";
+        mapContainer.style.filter = "brightness(1) saturate(1)";
+      }, 400);
+    }
+  }, silent ? 100 : 1500);
+}
+
+// =================== MARAUDER'S MAP CANVAS DRAWING ===================
+function initMaraudersMap() {
+  mapCanvas = document.getElementById("maraudersMapCanvas");
+  if (!mapCanvas) return;
+  mapCtx = mapCanvas.getContext("2d");
+
+  // Size correctly
+  const rect = mapCanvas.getBoundingClientRect();
+  mapCanvas.width = rect.width || 320;
+  mapCanvas.height = rect.height || 200;
+
+  const w = mapCanvas.width;
+  const h = mapCanvas.height;
+
+  // Build simulated corridors
+  mapWalls = [
+    {x1: 15, y1: 15, x2: w-15, y2: 15},
+    {x1: w-15, y1: 15, x2: w-15, y2: h-15},
+    {x1: w-15, y1: h-15, x2: 15, y2: h-15},
+    {x1: 15, y1: h-15, x2: 15, y2: 15},
+
+    // Horizontal hallways
+    {x1: 15, y1: h/2 - 15, x2: w-15, y2: h/2 - 15},
+    {x1: 15, y1: h/2 + 15, x2: w-15, y2: h/2 + 15},
+
+    // Vertical hallway left
+    {x1: w/3 - 15, y1: 15, x2: w/3 - 15, y2: h-15},
+    {x1: w/3 + 15, y1: 15, x2: w/3 + 15, y2: h-15},
+
+    // Vertical hallway right
+    {x1: 2*w/3 - 15, y1: 15, x2: 2*w/3 - 15, y2: h-15},
+    {x1: 2*w/3 + 15, y1: 15, x2: 2*w/3 + 15, y2: h-15},
+  ];
+
+  // Set up character paths
+  characters = [
+    { name: "Harry Potter", path: [{x: 25, y: h/2}, {x: w - 25, y: h/2}], progress: 0, speed: 0.4 },
+    { name: "Ron Weasley", path: [{x: w/3, y: 25}, {x: w/3, y: h - 25}], progress: 0, speed: 0.35 },
+    { name: "A. Dumbledore", path: [{x: 2*w/3, y: h - 25}, {x: 2*w/3, y: 25}], progress: 0, speed: 0.25 }
+  ];
+
+  if (mapLoop) cancelAnimationFrame(mapLoop);
+  drawMap();
+}
+
+function triggerMapGlitch() {
+  // Scramble character locations momentarily when GPS refreshes
+  characters.forEach(char => {
+    char.progress = Math.random() * 100;
+  });
+}
+
+function drawMap() {
+  if (!mapCtx || !mapCanvas) return;
+  const w = mapCanvas.width;
+  const h = mapCanvas.height;
+
+  // 1. Clear & Draw Vintage Parchment background
+  mapCtx.fillStyle = "#edd9be";
+  mapCtx.fillRect(0, 0, w, h);
+
+  // Subtle circular lines representing astronomical orbits/scroll rings
+  mapCtx.strokeStyle = "rgba(139, 90, 43, 0.12)";
+  mapCtx.lineWidth = 1;
+  mapCtx.beginPath();
+  mapCtx.arc(w/2, h/2, 40, 0, Math.PI * 2);
+  mapCtx.arc(w/2, h/2, 80, 0, Math.PI * 2);
+  mapCtx.stroke();
+
+  // 2. Draw vintage architecture (corridor walls)
+  mapCtx.strokeStyle = "rgba(90, 61, 38, 0.7)";
+  mapCtx.lineWidth = 2;
+  mapCtx.beginPath();
+  mapWalls.forEach(wall => {
+    mapCtx.moveTo(wall.x1, wall.y1);
+    mapCtx.lineTo(wall.x2, wall.y2);
+  });
+  mapCtx.stroke();
+
+  // 3. Draw compass grid
+  mapCtx.save();
+  mapCtx.strokeStyle = "rgba(90, 61, 38, 0.2)";
+  mapCtx.lineWidth = 1;
+  mapCtx.beginPath();
+  mapCtx.moveTo(w/2, 15); mapCtx.lineTo(w/2, h-15);
+  mapCtx.moveTo(15, h/2); mapCtx.lineTo(w-15, h/2);
+  mapCtx.stroke();
+  mapCtx.restore();
+
+  // 4. Update and Draw Characters & footprints
+  characters.forEach(char => {
+    const start = char.path[0];
+    const end = char.path[1];
+
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    char.progress += char.speed;
+    if (char.progress >= dist) {
+      char.path = [end, start]; // turn around
+      char.progress = 0;
+    }
+
+    const r = char.progress / dist;
+    const curX = start.x + dx * r;
+    const curY = start.y + dy * r;
+
+    // Drop footprints periodically
+    if (Math.floor(char.progress * 1.5) % 15 === 0) {
+      footprints.push({
+        x: curX,
+        y: curY,
+        angle: Math.atan2(dy, dx),
+        alpha: 1.0,
+        left: footprints.length % 2 === 0
+      });
+    }
+
+    // Draw Character Name Banner
+    mapCtx.save();
+    mapCtx.font = "bold 9px 'Cinzel', serif";
+    mapCtx.textAlign = "center";
+    const textWidth = mapCtx.measureText(char.name).width;
+
+    // Draw parchment paper tag
+    mapCtx.fillStyle = "#ebd4b9";
+    mapCtx.shadowColor = "rgba(0,0,0,0.15)";
+    mapCtx.shadowBlur = 4;
+    mapCtx.fillRect(curX - textWidth/2 - 4, curY - 18, textWidth + 8, 12);
+    mapCtx.strokeStyle = "rgba(90, 61, 38, 0.5)";
+    mapCtx.lineWidth = 1;
+    mapCtx.strokeRect(curX - textWidth/2 - 4, curY - 18, textWidth + 8, 12);
+    
+    // Draw Name in blood-red ink
+    mapCtx.fillStyle = "#740001";
+    mapCtx.shadowColor = "transparent";
+    mapCtx.fillText(char.name, curX, curY - 9);
+    mapCtx.restore();
+  });
+
+  // Render footprints
+  for (let i = 0; i < footprints.length; i++) {
+    const fp = footprints[i];
+    fp.alpha -= 0.004; // fade footprints
+    if (fp.alpha <= 0) {
+      footprints.splice(i, 1);
+      i--;
+      continue;
+    }
+
+    mapCtx.save();
+    mapCtx.translate(fp.x, fp.y);
+    mapCtx.rotate(fp.angle + Math.PI/2);
+    mapCtx.fillStyle = `rgba(116, 0, 1, ${fp.alpha * 0.75})`;
+    
+    // Draw footprints slightly offset
+    const offset = fp.left ? -2.5 : 2.5;
+    mapCtx.font = "8px sans-serif";
+    mapCtx.fillText("🐾", offset, 0);
+    mapCtx.restore();
+  }
+
+  mapLoop = requestAnimationFrame(drawMap);
 }
 
 // =================== FOLLOW ME FEATURE ===================
 function updateFollowStatus(isFollowing) {
   const followStatus = document.getElementById("followStatus");
+  if (!followStatus) return;
 
   if (isFollowing) {
-    // Simulate sending "ON" command to ESP
     followStatus.textContent = "Your luggage is now following you";
-    followStatus.style.color = "#9369d9";
-
-    // Add a subtle animation
+    followStatus.style.color = "#ebd4b9";
+    followStatus.style.textShadow = "0 0 10px rgba(238, 186, 48, 0.6)";
     followStatus.style.animation = "pulse 2s infinite";
   } else {
-    // Simulate sending "OFF" command to ESP
     followStatus.textContent = "Your luggage is staying put";
     followStatus.style.color = "white";
+    followStatus.style.textShadow = "none";
     followStatus.style.animation = "none";
   }
 }
@@ -154,21 +349,20 @@ function updateWeightDisplay() {
   const weightFill = document.getElementById("weightFill");
   const weightValue = document.getElementById("weightValue");
   const weightStatus = document.getElementById("weightStatus");
+  if (!weightFill || !weightValue || !weightStatus) return;
 
-  // Simulate weight data from ESP/sensors
-  const randomWeight = (Math.random() * 20 + 5).toFixed(1); // Between 5 and 25 kg
+  const randomWeight = (Math.random() * 20 + 5).toFixed(1);
   const percentage = (randomWeight / 23) * 100;
 
-  weightFill.style.width = `${percentage}%`;
+  weightFill.style.width = `${Math.min(percentage, 100)}%`;
   weightValue.textContent = `${randomWeight} kg`;
 
-  // Update weight status message and color
   if (randomWeight > 23) {
     weightStatus.textContent = "Warning: Exceeds airline weight limit";
-    weightFill.style.background = "linear-gradient(90deg, #ae0001, #eeba30)";
+    weightFill.style.background = "linear-gradient(90deg, #740001, #ae0001)";
   } else if (randomWeight > 20) {
     weightStatus.textContent = "Approaching airline weight limit";
-    weightFill.style.background = "linear-gradient(90deg, #eeba30, #ecb939)";
+    weightFill.style.background = "linear-gradient(90deg, #ecb939, #eeba30)";
   } else if (randomWeight > 15) {
     weightStatus.textContent = "Weight within carry-on limits";
     weightFill.style.background = "linear-gradient(90deg, #1a472a, #2a623d)";
@@ -181,68 +375,45 @@ function updateWeightDisplay() {
 // =================== HARRY POTTER QUOTES ===================
 function displayRandomQuote() {
   const quotes = [
-    {
-      text: "It does not do to dwell on dreams and forget to live.",
-      author: "Albus Dumbledore",
-    },
-    {
-      text: "Happiness can be found, even in the darkest of times, if one only remembers to turn on the light.",
-      author: "Albus Dumbledore",
-    },
-    {
-      text: "It takes a great deal of bravery to stand up to our enemies, but just as much to stand up to our friends.",
-      author: "Albus Dumbledore",
-    },
-    {
-      text: "Fear of a name only increases fear of the thing itself.",
-      author: "Hermione Granger",
-    },
-    {
-      text: "It is our choices that show what we truly are, far more than our abilities.",
-      author: "Albus Dumbledore",
-    },
-    {
-      text: "I solemnly swear that I am up to no good.",
-      author: "The Marauder's Map",
-    },
+    { text: "It does not do to dwell on dreams and forget to live.", author: "Albus Dumbledore" },
+    { text: "Happiness can be found, even in the darkest of times, if one only remembers to turn on the light.", author: "Albus Dumbledore" },
+    { text: "It takes a great deal of bravery to stand up to our enemies, but just as much to stand up to our friends.", author: "Albus Dumbledore" },
+    { text: "Fear of a name only increases fear of the thing itself.", author: "Hermione Granger" },
+    { text: "It is our choices that show what we truly are, far more than our abilities.", author: "Albus Dumbledore" },
+    { text: "I solemnly swear that I am up to no good.", author: "The Marauder's Map" },
     { text: "After all this time? Always.", author: "Severus Snape" },
-    {
-      text: "We've all got both light and dark inside us. What matters is the part we choose to act on.",
-      author: "Sirius Black",
-    },
-    {
-      text: "Just because you have the emotional range of a teaspoon doesn't mean we all have.",
-      author: "Hermione Granger",
-    },
-    { text: "Mischief managed!", author: "Harry Potter" },
+    { text: "We've all got both light and dark inside us. What matters is the part we choose to act on.", author: "Sirius Black" },
+    { text: "Just because you have the emotional range of a teaspoon doesn't mean we all have.", author: "Hermione Granger" },
+    { text: "Mischief managed!", author: "Harry Potter" }
   ];
 
   const randomIndex = Math.floor(Math.random() * quotes.length);
   const quote = quotes[randomIndex];
 
-  document.getElementById("quoteText").textContent = quote.text;
-  document.getElementById("quoteAuthor").textContent = `— ${quote.author}`;
-
-  // Add a fade effect
+  const qText = document.getElementById("quoteText");
+  const qAuthor = document.getElementById("quoteAuthor");
   const quoteContainer = document.querySelector(".quote-container");
+
+  if (!qText || !qAuthor || !quoteContainer) return;
+
   quoteContainer.style.opacity = 0;
 
   setTimeout(() => {
-    quoteContainer.style.transition = "opacity 1s";
+    qText.textContent = quote.text;
+    qAuthor.textContent = `— ${quote.author}`;
+    quoteContainer.style.transition = "opacity 0.6s";
     quoteContainer.style.opacity = 1;
-  }, 300);
+  }, 200);
 }
 
 // =================== HOUSE SELECTION & THEMES ===================
 function setupHouseSelection() {
-  // Make images clickable for house selection
   document.querySelectorAll(".house-option").forEach((option) => {
     option.style.cursor = "pointer";
   });
 }
 
 function applyHouseTheme(house) {
-  // Remove all previous house classes
   document.body.classList.remove(
     "gryffindor-theme",
     "slytherin-theme",
@@ -250,69 +421,48 @@ function applyHouseTheme(house) {
     "hufflepuff-theme"
   );
 
-  // Apply the selected house theme
   document.body.classList.add(`${house}-theme`);
-
-  // Update UI elements based on house
   updateUIForHouse(house);
 
-  // Magical transition effect
   const main = document.querySelector("main");
-  main.style.transition = "transform 0.5s, opacity 0.5s";
-  main.style.transform = "scale(0.98)";
-  main.style.opacity = "0.8";
+  if (main) {
+    main.style.transition = "transform 0.4s, opacity 0.4s";
+    main.style.transform = "scale(0.99)";
+    main.style.opacity = "0.9";
 
-  setTimeout(() => {
-    main.style.transform = "scale(1)";
-    main.style.opacity = "1";
-  }, 500);
+    setTimeout(() => {
+      main.style.transform = "scale(1)";
+      main.style.opacity = "1";
+    }, 400);
+  }
 }
 
 function updateUIForHouse(house) {
   const featureButtons = document.querySelectorAll(".feature-btn");
   const houseColors = {
-    gryffindor: {
-      primary: "#740001",
-      secondary: "#ae0001",
-      accent: "#eeba30",
-    },
-    slytherin: {
-      primary: "#1a472a",
-      secondary: "#2a623d",
-      accent: "#aaaaaa",
-    },
-    ravenclaw: {
-      primary: "#0e1a40",
-      secondary: "#222f5b",
-      accent: "#bebebe",
-    },
-    hufflepuff: {
-      primary: "#ecb939",
-      secondary: "#f0c75e",
-      accent: "#726255",
-    },
+    gryffindor: { primary: "#740001", secondary: "#ae0001", accent: "#eeba30" },
+    slytherin: { primary: "#1a472a", secondary: "#2a623d", accent: "#aaaaaa" },
+    ravenclaw: { primary: "#0e1a40", secondary: "#222f5b", accent: "#bebebe" },
+    hufflepuff: { primary: "#ecb939", secondary: "#f0c75e", accent: "#726255" }
   };
 
-  // Update button gradients for the selected house
   featureButtons.forEach((button) => {
-    if (!button.classList.contains("btn-secondary")) {
+    if (!button.classList.contains("btn-secondary") && !button.id.includes("reset")) {
       const colors = houseColors[house];
-      button.style.background = `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`;
+      if (colors) {
+        button.style.background = `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`;
+      }
     }
   });
 
-  // Update active menu items
   const activeMenu = document.querySelector(".menuboxes.active");
-  activeMenu.style.backgroundColor = `rgba(${getRGBValues(
-    houseColors[house].primary
-  )}, 0.5)`;
-  activeMenu.style.borderColor = `rgba(${getRGBValues(
-    houseColors[house].secondary
-  )}, 0.8)`;
+  if (activeMenu && houseColors[house]) {
+    activeMenu.style.backgroundColor = `rgba(${getRGBValues(houseColors[house].primary)}, 0.45)`;
+    activeMenu.style.borderColor = `rgba(${getRGBValues(houseColors[house].accent)}, 0.7)`;
+  }
 }
 
 function getRGBValues(hex) {
-  // Convert hex to RGB
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -320,15 +470,12 @@ function getRGBValues(hex) {
 }
 
 function highlightSelectedHouse(house) {
-  // Remove active class from all options
   document.querySelectorAll(".house-option").forEach((option) => {
     option.classList.remove("active");
   });
 
-  // Add active class to selected house
-  document
-    .querySelector(`.house-option[data-house="${house}"]`)
-    .classList.add("active");
+  const targetOption = document.querySelector(`.house-option[data-house="${house}"]`);
+  if (targetOption) targetOption.classList.add("active");
 }
 
 // =================== PASSWORD MANAGEMENT ===================
@@ -337,39 +484,38 @@ function updatePassword() {
   const newPassword = document.getElementById("newPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
 
-  // Simple validation
   if (!currentPassword || !newPassword || !confirmPassword) {
+    if (window.MagicEngine) window.MagicEngine.playChime(180, "sawtooth", 0.3, 0.1);
     showPasswordNotification("Please fill in all password fields", false);
     return;
   }
 
   if (newPassword !== confirmPassword) {
+    if (window.MagicEngine) window.MagicEngine.playChime(180, "sawtooth", 0.3, 0.1);
     showPasswordNotification("New passwords do not match", false);
     return;
   }
 
-  // Here you would normally validate against the current password
-  // and then save the new password securely
-
-  // For demo purposes, we'll just simulate success
+  if (window.MagicEngine) {
+    window.MagicEngine.playChime(523.25, "sine", 0.15, 0.1);
+    setTimeout(() => window.MagicEngine.playChime(659.25, "sine", 0.2, 0.12), 80);
+  }
   showPasswordNotification("Password updated successfully!", true);
 
-  // Clear the fields
   document.getElementById("currentPassword").value = "";
   document.getElementById("newPassword").value = "";
   document.getElementById("confirmPassword").value = "";
 }
 
 function resetPassword() {
-  // Simulate sending a reset email
-  showPasswordNotification(
-    "Password reset instructions sent to your email",
-    true
-  );
+  if (window.MagicEngine) {
+    window.MagicEngine.playChime(392, "sine", 0.1, 0.1);
+    setTimeout(() => window.MagicEngine.playChime(523.25, "sine", 0.25, 0.12), 100);
+  }
+  showPasswordNotification("Password reset instructions sent via Owl Post", true);
 }
 
 function showPasswordNotification(message, isSuccess) {
-  // Create notification element if it doesn't exist
   let notification = document.getElementById("passwordNotification");
   if (!notification) {
     notification = document.createElement("div");
@@ -380,38 +526,42 @@ function showPasswordNotification(message, isSuccess) {
     notification.style.textAlign = "center";
     notification.style.transition = "opacity 0.5s";
 
-    const securitySection = document.querySelector(
-      ".feature-card:nth-child(2) .feature-content"
-    );
-    securitySection.appendChild(notification);
+    const securitySection = document.querySelector(".feature-card:nth-child(2) .feature-content");
+    if (securitySection) securitySection.appendChild(notification);
   }
 
-  // Set appearance based on success/failure
   if (isSuccess) {
-    notification.style.backgroundColor = "rgba(0, 255, 0, 0.2)";
-    notification.style.border = "1px solid rgba(0, 255, 0, 0.5)";
+    notification.style.backgroundColor = "rgba(34, 139, 34, 0.25)";
+    notification.style.border = "1px solid rgba(0, 255, 0, 0.4)";
+    notification.style.color = "#ebd4b9";
   } else {
-    notification.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
-    notification.style.border = "1px solid rgba(255, 0, 0, 0.5)";
+    notification.style.backgroundColor = "rgba(139, 0, 0, 0.25)";
+    notification.style.border = "1px solid rgba(255, 0, 0, 0.4)";
+    notification.style.color = "#ff8888";
   }
 
-  // Show message
   notification.textContent = message;
   notification.style.opacity = "1";
 
-  // Hide after 5 seconds
   setTimeout(() => {
     notification.style.opacity = "0";
-  }, 5000);
+  }, 4000);
 }
 
-// =================== SORTING HAT ===================
+// =================== SORTING HAT CONVERSE ===================
 function consultSortingHat() {
   const sortingResult = document.getElementById("sortingResult");
+  if (!sortingResult) return;
+
   sortingResult.textContent = "The Sorting Hat is thinking...";
   sortingResult.className = "sorting-result active";
 
-  // Simulate the Sorting Hat's deliberation
+  if (window.MagicEngine) {
+    // Play dark low-frequency rumble chime for sorting suspense
+    window.MagicEngine.playChime(220, "triangle", 1.8, 0.1);
+    window.MagicEngine.playChime(223, "triangle", 1.8, 0.1);
+  }
+
   setTimeout(() => {
     const houses = ["gryffindor", "slytherin", "ravenclaw", "hufflepuff"];
     const randomHouse = houses[Math.floor(Math.random() * houses.length)];
@@ -422,7 +572,6 @@ function consultSortingHat() {
       hufflepuff: "Hufflepuff",
     };
 
-    // Update sorting result
     sortingResult.textContent = `The Sorting Hat has decided: ${houseNames[randomHouse]}!`;
     sortingResult.className = `sorting-result active ${randomHouse}`;
 
@@ -431,60 +580,25 @@ function consultSortingHat() {
     highlightSelectedHouse(randomHouse);
     localStorage.setItem("selectedHouse", randomHouse);
 
-    // Add special effects
+    if (window.MagicEngine) {
+      // Play a high, sparkling, triumphant arpeggio chime!
+      window.MagicEngine.playChime(523.25, "sine", 0.1, 0.12); // C5
+      setTimeout(() => window.MagicEngine.playChime(659.25, "sine", 0.1, 0.14), 70); // E5
+      setTimeout(() => window.MagicEngine.playChime(783.99, "sine", 0.1, 0.16), 140); // G5
+      setTimeout(() => window.MagicEngine.playChime(1046.50, "sine", 0.35, 0.2), 210); // C6
+    }
+
     const sortingHatBtn = document.getElementById("sortingHat");
-    sortingHatBtn.classList.add("inactive");
-    sortingHatBtn.textContent = "Sorted!";
+    if (sortingHatBtn) {
+      sortingHatBtn.classList.add("inactive");
+      sortingHatBtn.textContent = "Sorted!";
+    }
 
-    // Re-enable after 3 seconds
     setTimeout(() => {
-      sortingHatBtn.classList.remove("inactive");
-      sortingHatBtn.textContent = "Consult the Sorting Hat";
-    }, 3000);
-  }, 2000);
+      if (sortingHatBtn) {
+        sortingHatBtn.classList.remove("inactive");
+        sortingHatBtn.textContent = "Consult the Sorting Hat";
+      }
+    }, 4000);
+  }, 1800);
 }
-
-// =================== ANIMATIONS ===================
-// Add a pulse animation for the Follow Me feature
-const styleSheet = document.createElement("style");
-styleSheet.textContent = `
-  @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-  }
-  
-  .feature-btn.inactive {
-      background: rgba(100, 100, 100, 0.5) !important;
-      cursor: not-allowed;
-  }
-`;
-document.head.appendChild(styleSheet);
-
-// =================== SIMULATED BACKEND UPDATES ===================
-// Periodically update information to simulate a real system
-setInterval(() => {
-  // Randomly decide which feature to update
-  const randomFeature = Math.floor(Math.random() * 3);
-
-  switch (randomFeature) {
-    case 0:
-      // Sometimes update location
-      if (Math.random() < 0.3) {
-        updateGPSLocation();
-      }
-      break;
-    case 1:
-      // Sometimes update weight
-      if (Math.random() < 0.5) {
-        updateWeightDisplay();
-      }
-      break;
-    case 2:
-      // Rarely show a new quote automatically
-      if (Math.random() < 0.2) {
-        displayRandomQuote();
-      }
-      break;
-  }
-}, 30000); // Every 30 seconds
